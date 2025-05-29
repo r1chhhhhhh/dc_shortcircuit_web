@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - DC Short Circuit Simulation{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-calculator"></i> DC Short Circuit Simulation Tool v2.0
+                </h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">
+                    Enter the simulation parameters below to calculate DC short circuit fault currents,
+                    protection system behavior, and time domain analysis.
+                </p>
+
+                <hr class="my-4">
+
+                <!-- Spotify Embed Start -->
+
+                <form method="post" action="{% url 'simulation:run' %}" id="simulationForm">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <!-- Source Parameters -->
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-plug"></i> Source Parameters
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.source_voltage.id_for_label }}" class="form-label">
+                                    {{ form.source_voltage.label }}
+                                </label>
+                                {{ form.source_voltage }}
+                                {% if form.source_voltage.errors %}
+                                    <div class="text-danger">{{ form.source_voltage.errors }}</div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.source_internal_resistance.id_for_label }}" class="form-label">
+                                    {{ form.source_internal_resistance.label }}
+                                </label>
+                                {{ form.source_internal_resistance }}
+                                {% if form.source_internal_resistance.errors %}
+                                    <div class="text-danger">{{ form.source_internal_resistance.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.system_inductance.id_for_label }}" class="form-label">
+                                    {{ form.system_inductance.label }}
+                                </label>
+                                {{ form.system_inductance }}
+                                {% if form.system_inductance.errors %}
+                                    <div class="text-danger">{{ form.system_inductance.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Line Parameters -->
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-route"></i> Line Parameters
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.line_resistance.id_for_label }}" class="form-label">
+                                    {{ form.line_resistance.label }}
+                                </label>
+                                {{ form.line_resistance }}
+                                {% if form.line_resistance.errors %}
+                                    <div class="text-danger">{{ form.line_resistance.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.line_inductance.id_for_label }}" class="form-label">
+                                    {{ form.line_inductance.label }}
+                                </label>
+                                {{ form.line_inductance }}
+                                {% if form.line_inductance.errors %}
+                                    <div class="text-danger">{{ form.line_inductance.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.line_length.id_for_label }}" class="form-label">
+                                    {{ form.line_length.label }}
+                                </label>
+                                {{ form.line_length }}
+                                {% if form.line_length.errors %}
+                                    <div class="text-danger">{{ form.line_length.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <!-- Fault Parameters -->
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-exclamation-triangle"></i> Fault Parameters
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.fault_resistance.id_for_label }}" class="form-label">
+                                    {{ form.fault_resistance.label }}
+                                </label>
+                                {{ form.fault_resistance }}
+                                {% if form.fault_resistance.errors %}
+                                    <div class="text-danger">{{ form.fault_resistance.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.fault_distance.id_for_label }}" class="form-label">
+                                    {{ form.fault_distance.label }}
+                                </label>
+                                {{ form.fault_distance }}
+                                {% if form.fault_distance.errors %}
+                                    <div class="text-danger">{{ form.fault_distance.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Substation Parameters -->
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-building"></i> Substation Parameters
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.num_substations.id_for_label }}" class="form-label">
+                                    {{ form.num_substations.label }}
+                                </label>
+                                {{ form.num_substations }}
+                                {% if form.num_substations.errors %}
+                                    <div class="text-danger">{{ form.num_substations.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.substation_spacing.id_for_label }}" class="form-label">
+                                    {{ form.substation_spacing.label }}
+                                </label>
+                                {{ form.substation_spacing }}
+                                {% if form.substation_spacing.errors %}
+                                    <div class="text-danger">{{ form.substation_spacing.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <!-- Protection Parameters -->
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-shield-alt"></i> Protection Parameters
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.protection_trip_time.id_for_label }}" class="form-label">
+                                    {{ form.protection_trip_time.label }}
+                                </label>
+                                {{ form.protection_trip_time }}
+                                {% if form.protection_trip_time.errors %}
+                                    <div class="text-danger">{{ form.protection_trip_time.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.protection_trip_current.id_for_label }}" class="form-label">
+                                    {{ form.protection_trip_current.label }}
+                                </label>
+                                {{ form.protection_trip_current }}
+                                {% if form.protection_trip_current.errors %}
+                                    <div class="text-danger">{{ form.protection_trip_current.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Simulation Parameters -->
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3">
+                                <i class="fas fa-cogs"></i> Simulation Parameters
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.simulation_time_step.id_for_label }}" class="form-label">
+                                    {{ form.simulation_time_step.label }}
+                                </label>
+                                {{ form.simulation_time_step }}
+                                {% if form.simulation_time_step.errors %}
+                                    <div class="text-danger">{{ form.simulation_time_step.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="{{ form.simulation_duration.id_for_label }}" class="form-label">
+                                    {{ form.simulation_duration.label }}
+                                </label>
+                                {{ form.simulation_duration }}
+                                {% if form.simulation_duration.errors %}
+                                    <div class="text-danger">{{ form.simulation_duration.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success btn-lg" id="runSimulation">
+                            <i class="fas fa-play"></i> Run Simulation
+                        </button>
+                        <button type="reset" class="btn btn-secondary btn-lg ms-2">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#simulationForm').on('submit', function() {
+        $('#runSimulation').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Running...');
+    });
+});
+</script>
+{% endblock %}

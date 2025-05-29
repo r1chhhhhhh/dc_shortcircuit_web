@@ -1,0 +1,331 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Results - DC Short Circuit Simulation{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-chart-line"></i> Simulation Results
+                </h4>
+                <div>
+                    <a href="{% url 'simulation:download_excel' simulation.id %}" class="btn btn-light btn-sm">
+                        <i class="fas fa-download"></i> Download Excel
+                    </a>
+                    <a href="#" id="downloadAllChartsBtn" class="btn btn-light btn-sm ms-2">
+                        <i class="fas fa-images"></i> Download All Charts
+                    </a>
+                    <a href="{% url 'simulation:home' %}" class="btn btn-outline-light btn-sm ms-2">
+                        <i class="fas fa-plus"></i> New Simulation
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Key Results -->
+                    <div class="col-md-6">
+                        <h5 class="text-primary mb-3">Key Results</h5>
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Total Fault Current</strong></td>
+                                    <td>{{ simulation.total_fault_current|floatformat:2 }} A</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Energy Released</strong></td>
+                                    <td>{{ simulation.energy_released|floatformat:2 }} J</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Thermal Stress</strong></td>
+                                    <td>{{ simulation.thermal_stress|floatformat:2 }} A√s</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Protection Will Trip</strong></td>
+                                    <td>
+                                        {% if simulation.protection_will_trip %}
+                                            <span class="badge bg-success">Yes</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">No</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Trip Time</strong></td>
+                                    <td>{{ simulation.trip_time|floatformat:4 }} s</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Critical Analysis -->
+                    <div class="col-md-6">
+                        <h5 class="text-primary mb-3">Critical Fault Analysis</h5>
+                        <table class="table table-striped">
+                            <tbody>
+                                <tr>
+                                    <td><strong>Shortest Distance Current</strong></td>
+                                    <td>{{ simulation.shortest_distance_current|floatformat:2 }} A</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Longest Distance Current</strong></td>
+                                    <td>{{ simulation.longest_distance_current|floatformat:2 }} A</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Shortest Distance di/dt</strong></td>
+                                    <td>{{ simulation.shortest_distance_didt|floatformat:"2e" }} kA/s</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Longest Distance di/dt</strong></td>
+                                    <td>{{ simulation.longest_distance_didt|floatformat:"2e" }} kA/s</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Peak di/dt</strong></td>
+                                    <td>{{ simulation.peak_didt|floatformat:"2e" }} kA/s</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                {% if has_charts %}
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <h5 class="text-primary mb-3">Analysis Charts</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Fault Current by Substation</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <img id="fault-currents-chart" src="" class="img-fluid" alt="Fault Currents Chart">
+                                        <div id="fault-currents-loading" class="text-muted">
+                                            <i class="fas fa-spinner fa-spin"></i> Loading chart...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Voltage Drop by Substation</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <img id="voltage-drops-chart" src="" class="img-fluid" alt="Voltage Drops Chart">
+                                        <div id="voltage-drops-loading" class="text-muted">
+                                            <i class="fas fa-spinner fa-spin"></i> Loading chart...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Critical Fault Analysis</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <img id="critical-faults-chart" src="" class="img-fluid" alt="Critical Faults Chart">
+                                        <div id="critical-faults-loading" class="text-muted">
+                                            <i class="fas fa-spinner fa-spin"></i> Loading chart...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Current vs Time</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <img id="current-vs-time-chart" src="" class="img-fluid" alt="Current vs Time Chart">
+                                        <div id="current-vs-time-loading" class="text-muted">
+                                            <i class="fas fa-spinner fa-spin"></i> Loading chart...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">di/dt vs Time</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <img id="didt-vs-time-chart" src="" class="img-fluid" alt="di/dt vs Time Chart">
+                                        <div id="didt-vs-time-loading" class="text-muted">
+                                            <i class="fas fa-spinner fa-spin"></i> Loading chart...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Voltage vs Time</h6>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <img id="voltage-vs-time-chart" src="" class="img-fluid" alt="Voltage vs Time Chart">
+                                        <div id="voltage-vs-time-loading" class="text-muted">
+                                            <i class="fas fa-spinner fa-spin"></i> Loading chart...
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Simulation Info -->
+                <hr>
+                <div class="row">
+                    <div class="col-12">
+                        <h5 class="text-primary mb-3">Simulation Information</h5>
+                        <p><strong>Simulation ID:</strong> {{ simulation.id }}</p>
+                        <p><strong>Created:</strong> {{ simulation.created_at|date:"Y-m-d H:i:s" }}</p>
+                        <p><strong>Version:</strong> DC Short Circuit Simulation Tool v2.0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    {% if has_charts %}
+    // 加载所有图表
+    const charts = [
+        'fault_currents',
+        'voltage_drops',
+        'critical_faults',
+        'current_vs_time',
+        'didt_vs_time',
+        'voltage_vs_time'
+    ];
+
+    charts.forEach(function(chartType) {
+        loadChart(chartType);
+    });
+
+    // New: Download All Charts button handler
+    $('#downloadAllChartsBtn').on('click', function(e) {
+        e.preventDefault(); // Prevent default link behavior
+
+        const $button = $(this);
+        $button.html('<i class="fas fa-spinner fa-spin"></i> Downloading...');
+        $button.prop('disabled', true);
+
+        const simulationId = "{{ simulation.id }}";
+
+        const downloadPromises = charts.map(function(chartType) {
+            return new Promise((resolve, reject) => {
+                let ajaxUrl = `/chart/${simulationId}/${chartType}/`;
+                $.ajax({
+                    url: ajaxUrl,
+                    method: 'GET',
+                    success: function(data) {
+                        if (data.image_url) {
+                            const imageUrl = data.image_url;
+                            // Extract filename from URL. Example: /media/charts/my_chart_name.png -> my_chart_name.png
+                            const filename = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+
+                            const link = document.createElement('a');
+                            link.href = imageUrl;
+                            link.download = filename; // Suggests a filename for the download
+                            document.body.appendChild(link); // Required for Firefox and some other cases
+                            link.click();
+                            document.body.removeChild(link); // Clean up
+                            resolve(chartType);
+                        } else {
+                            console.error(`Could not get image_url for ${chartType}:`, data.error || "Unknown error");
+                            reject(`Error for ${chartType}: No image_url`);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error(`Failed to fetch chart data for ${chartType}:`, status, error);
+                        reject(`Error for ${chartType}: AJAX failed - ${status} ${error}`);
+                    }
+                });
+            });
+        });
+
+        Promise.allSettled(downloadPromises).then((results) => {
+            $button.html('<i class="fas fa-images"></i> Download All Charts');
+            $button.prop('disabled', false);
+
+            let successfulDownloads = results.filter(result => result.status === 'fulfilled').length;
+            if (successfulDownloads < charts.length) {
+                // Optionally, notify user about partial success/failures
+                // For now, just log to console
+                console.warn((charts.length - successfulDownloads) + " chart downloads may have failed. Check console for errors.");
+                // You could display a more user-friendly message on the page if desired.
+            }
+        });
+    });
+    // End New
+
+    function loadChart(chartType) {
+        const chartId = chartType.replace(/_/g, '-') + '-chart';
+        const loadingId = chartType.replace(/_/g, '-') + '-loading';
+
+        // 使用正确的URL构建方式
+        let url = '/chart/{{ simulation.id }}/' + chartType + '/';
+
+        console.log("圖片URL:", url);
+
+        $.ajax({
+            url: url,
+            method: 'GET',
+            success: function(data) {
+                console.log("圖片返還數據 for " + chartType + ":", data); // 已有
+
+                if (data.image_url) {
+                    const imgUrl = data.image_url + '?t=' + new Date().getTime();
+                    console.log("給 " + chartType + " 設定圖片URL:", imgUrl); // 已有
+                    console.log("查找IMG Element #" + chartId); // 新增
+
+                    const $imgElement = $('#' + chartId); // 获取jQuery对象
+
+                    if ($imgElement.length) { // 检查元素是否存在
+                        console.log("找到 img 元素 #" + chartId + "，準備設置 src"); // 新增
+                        $imgElement.attr('src', imgUrl).on('load', function() {
+                            console.log("圖片 #" + chartId + " 載入成功"); // 新增
+                            $('#' + loadingId).hide();
+                        }).on('error', function() {
+                            console.error("圖片 #" + chartId + " 載入失敗:", imgUrl); // 新增
+                            $('#' + loadingId).html('<span class="text-danger">圖片載入失敗</span>');
+                        });
+                    } else {
+                        console.error("Error：沒有找到 img 元素 #" + chartId + " for " + chartType); // 新增
+                    }
+                } else if (data.error) {
+                    console.error("Server Return Erroir for " + chartType + ": " + data.error); // 新增/修改
+                    $('#' + loadingId).html('<span class="text-danger">' + data.error + '</span>');
+                } else {
+                    console.error("Loading Chart Failed (No image_url or error) for " + chartType); // 新增/修改
+                    $('#' + loadingId).html('<span class="text-danger">Loading Chart Failed</span>');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("圖片請求錯誤:", status, error);
+                $('#' + loadingId).html('<span class="text-danger">Loading Chart Failed: ' + error + '</span>');
+            }
+        });
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}
+
